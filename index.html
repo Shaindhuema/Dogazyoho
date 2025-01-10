@@ -1,0 +1,46 @@
+function loadVideo() {
+    const url = document.getElementById("videoUrl").value;
+    const videoArea = document.getElementById("videoArea");
+    const videoInfo = document.getElementById("videoInfo");
+    const videoTitle = document.getElementById("videoTitle");
+    const videoDescription = document.getElementById("videoDescription");
+    const videoLink = document.getElementById("videoLink");
+
+    // YouTubeのURLかどうかを判定
+    if (url.includes("youtube.com/watch?v=")) {
+        const videoId = url.split("v=")[1];
+        const ampersandPosition = videoId.indexOf("&");
+        if (ampersandPosition != -1) {
+            videoId = videoId.substring(0, ampersandPosition);
+        }
+
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+
+        videoArea.innerHTML = `
+            <iframe width="100%" height="100%" src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        `;
+        videoInfo.style.display = "block";
+        videoTitle.textContent = "動画タイトル取得中...";
+        videoDescription.textContent = "動画説明取得中...";
+        videoLink.href = url;
+
+        fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=YOUR_API_KEY&part=snippet`)
+        .then(response => response.json())
+        .then(data => {
+          if(data.items.length > 0){
+            videoTitle.textContent = data.items[0].snippet.title;
+            videoDescription.textContent = data.items[0].snippet.description;
+          } else {
+            videoTitle.textContent = "動画情報取得失敗";
+            videoDescription.textContent = "";
+          }
+        }).catch(error => {
+          videoTitle.textContent = "動画情報取得失敗";
+          videoDescription.textContent = "";
+        });
+
+    } else {
+        videoArea.innerHTML = "<p>YouTubeのURLを入力してください。</p>";
+        videoInfo.style.display = "none";
+    }
+}
